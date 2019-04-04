@@ -1,9 +1,86 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import Autocompleter from "./components/autocompleter.js";
+import App from "./components/App.js";
+
+ReactDOM.render(<App />, document.getElementById("root"));
 
 
-const COUNTRIES = ["Afghanistan","Albania","Algeria","Andorra","Angola","Anguilla","Antigua &amp; Barbuda","Argentina","Armenia","Aruba","Australia","Austria","Azerbaijan",
+function autocomplete(inp, arr) {
+
+  inp.addEventListener('input', function(e) {
+
+    closeAutocompleteList();
+
+    let val = this.value;
+    if (!val) return;
+
+    //создается контейнер для списка
+    let list = document.createElement('div');
+    list.setAttribute('class', 'items-list');
+    this.parentNode.appendChild(list);
+
+    //наполняется список
+    for (let i = 0; i < arr.length; i++) {
+      if (arr[i].substr(0, val.length).toUpperCase() != val.toUpperCase()) continue;
+
+      let item = document.createElement('div');
+      item.innerHTML = "<strong>" + arr[i].substr(0, val.length) + "</strong>";
+      item.innerHTML += arr[i].substr(val.length);
+      item.setAttribute('class', 'item');
+
+      item.addEventListener('click', function() {
+        inp.value = this.innerText;
+      });
+
+      list.appendChild(item);
+    }
+  });
+
+  // перемещение по списку стрелками и выбор по ENTER
+  inp.addEventListener('keydown', function(e) {
+    let list = document.getElementsByClassName('items-list')[0];
+    if (!list) return;
+
+    let hoverElement = list.querySelector(':hover') || list.querySelector('.hover');
+    
+    // key DOWN
+    if (e.keyCode == 40) {
+      if (!hoverElement) {
+        list.firstChild.classList.add('hover');
+      } else {
+        hoverElement.classList.remove('hover');
+        let next = hoverElement.nextSibling;
+        if (next) next.classList.add('hover');
+      }
+    // key UP 
+    } else if (e.keyCode == 38) {
+      if (!hoverElement) {
+        list.firstChild.classList.add('hover');
+      } else {
+        hoverElement.classList.remove('hover');
+        let previous = hoverElement.previousSibling;
+        if (previous) previous.classList.add('hover');
+      }
+    // key ENTER
+    } else if (e.keyCode == 13) {
+      if (!hoverElement) return;
+      inp.value = hoverElement.innerText;
+      closeAutocompleteList();
+    }
+
+  });
+  
+}
+
+//удаление контейнера для списка
+function closeAutocompleteList() {
+  let list = document.getElementsByClassName('items-list')[0];
+  if (!list) return;
+  list.parentElement.removeChild(list);
+}
+document.addEventListener('click', closeAutocompleteList);
+
+const countries = ["Afghanistan","Albania","Algeria","Andorra","Angola","Anguilla","Antigua &amp; Barbuda","Argentina","Armenia","Aruba","Australia","Austria","Azerbaijan",
                    "Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bermuda","Bhutan","Bolivia","Bosnia &amp; Herzegovina","Botswana","Brazil",
                    "British Virgin Islands","Brunei","Bulgaria","Burkina Faso","Burundi","Cambodia","Cameroon","Canada","Cape Verde","Cayman Islands",
                    "Central Arfrican Republic","Chad","Chile","China","Colombia","Congo","Cook Islands","Costa Rica","Cote D Ivoire","Croatia","Cuba","Curacao","Cyprus",
@@ -23,7 +100,4 @@ const COUNTRIES = ["Afghanistan","Albania","Algeria","Andorra","Angola","Anguill
                    "Virgin Islands (US)","Yemen","Zambia","Zimbabwe"
 ];
 
-ReactDOM.render(
-  <Autocompleter countries={COUNTRIES}/>,
-  document.getElementById("root")
-);
+autocomplete(document.getElementById("autocompleteInput"), countries);
